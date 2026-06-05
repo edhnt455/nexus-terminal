@@ -1,27 +1,22 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile.app
-    image: heavrnl/nexus-terminal:latest
+    image: edhnt4551/nexus-terminal:latest
     container_name: nexus-terminal
     network_mode: host
-    env_file:
-      - .env
     environment:
       NODE_ENV: production
-      APP_HTTP_PORT: ${APP_HTTP_PORT:-18111}
-      BACKEND_PORT: 3001
-      PORT: 3001
+      APP_HTTP_PORT: 18111
+      BACKEND_PORT: 18112
+      PORT: 18112
       DEPLOYMENT_MODE: docker
-      REMOTE_GATEWAY_API_PORT: 9090
-      REMOTE_GATEWAY_WS_PORT: 8080
-      REMOTE_GATEWAY_API_BASE_DOCKER: http://127.0.0.1:9090
-      REMOTE_GATEWAY_WS_URL_DOCKER: ws://127.0.0.1:8080
+      REMOTE_GATEWAY_API_PORT: 18113
+      REMOTE_GATEWAY_WS_PORT: 18114
+      REMOTE_GATEWAY_API_BASE_DOCKER: http://127.0.0.1:18113
+      REMOTE_GATEWAY_WS_URL_DOCKER: ws://127.0.0.1:18114
       GUACD_HOST: 127.0.0.1
-      GUACD_PORT: 4822
-      FRONTEND_URL: http://localhost:${APP_HTTP_PORT:-18111}
-      MAIN_BACKEND_URL: http://127.0.0.1:3001
+      GUACD_PORT: 18115
+      FRONTEND_URL: http://localhost:18111
+      MAIN_BACKEND_URL: http://127.0.0.1:18112
     volumes:
       - ./data:/app/data
     depends_on:
@@ -32,5 +27,5 @@ services:
     image: guacamole/guacd:latest
     container_name: nexus-terminal-guacd
     network_mode: host
-    command: ["-f", "-b", "0.0.0.0", "-l", "4822"]
+    command: ["-f", "-b", "0.0.0.0", "-l", "18115"]
     restart: unless-stopped
