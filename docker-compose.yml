@@ -1,58 +1,36 @@
 services:
-  frontend:
-    image: heavrnl/nexus-terminal-frontend:latest
-    container_name: nexus-terminal-frontend
-    ports:
-      - "18111:80"
-    depends_on:
-      - backend
-      - remote-gateway
-    networks:
-      - nexus-terminal-network
-
-  backend:
-    image: heavrnl/nexus-terminal-backend:latest
-    container_name: nexus-terminal-backend
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    image: heavrnl/nexus-terminal:latest
+    container_name: nexus-terminal
+    network_mode: host
     env_file:
       - .env
     environment:
       NODE_ENV: production
+      APP_HTTP_PORT: ${APP_HTTP_PORT:-18111}
+      BACKEND_PORT: 3001
       PORT: 3001
-    volumes:
-      - ./data:/app/data
-    networks:
-      - nexus-terminal-network
-
-  remote-gateway:
-    image: heavrnl/nexus-terminal-remote-gateway:latest
-    container_name: nexus-terminal-remote-gateway
-    environment:
-      GUACD_HOST: guacd
-      GUACD_PORT: 4822
+      DEPLOYMENT_MODE: docker
       REMOTE_GATEWAY_API_PORT: 9090
       REMOTE_GATEWAY_WS_PORT: 8080
-      FRONTEND_URL: http://frontend
-      MAIN_BACKEND_URL: http://backend:3001
-      NODE_ENV: production
-    networks:
-      - nexus-terminal-network
+      REMOTE_GATEWAY_API_BASE_DOCKER: http://127.0.0.1:9090
+      REMOTE_GATEWAY_WS_URL_DOCKER: ws://127.0.0.1:8080
+      GUACD_HOST: 127.0.0.1
+      GUACD_PORT: 4822
+      FRONTEND_URL: http://localhost:${APP_HTTP_PORT:-18111}
+      MAIN_BACKEND_URL: http://127.0.0.1:3001
+    volumes:
+      - ./data:/app/data
     depends_on:
       - guacd
-      - backend
+    restart: unless-stopped
 
   guacd:
     image: guacamole/guacd:latest
     container_name: nexus-terminal-guacd
-    networks:
-      - nexus-terminal-network
+    network_mode: host
+    command: ["-f", "-b", "0.0.0.0", "-l", "4822"]
     restart: unless-stopped
-
-networks:
-  nexus-terminal-network:
-    driver: bridge
-    name: nexus-terminal-network
-    enable_ipv6: true
-    ipam:
-      config:
-        - subnet: fd01::/80    
-          gateway: fd01::1    
