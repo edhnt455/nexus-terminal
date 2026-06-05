@@ -27,7 +27,9 @@ COPY packages/remote-gateway/guacamole-lite.d.ts ./packages/remote-gateway/
 RUN npm run build --workspace=@nexus-terminal/backend
 RUN npm run build --workspace=@nexus-terminal/frontend
 RUN npm run build --workspace=@nexus-terminal/remote-gateway
-RUN npm prune --omit=dev
+RUN npm prune --omit=dev \
+    && if [ -d packages/backend/node_modules ]; then cp -a packages/backend/node_modules/. node_modules/; fi \
+    && if [ -d packages/remote-gateway/node_modules ]; then cp -a packages/remote-gateway/node_modules/. node_modules/; fi
 
 FROM node:20-bookworm-slim
 
@@ -66,17 +68,17 @@ RUN chmod +x /usr/local/bin/nexus-terminal-entrypoint.sh
 
 ENV NODE_ENV=production \
     APP_HTTP_PORT=18111 \
-    BACKEND_PORT=3001 \
+    BACKEND_PORT=18112 \
     DEPLOYMENT_MODE=docker \
-    REMOTE_GATEWAY_API_PORT=9090 \
-    REMOTE_GATEWAY_WS_PORT=8080 \
-    REMOTE_GATEWAY_API_BASE_DOCKER=http://127.0.0.1:9090 \
-    REMOTE_GATEWAY_WS_URL_DOCKER=ws://127.0.0.1:8080 \
+    REMOTE_GATEWAY_API_PORT=18113 \
+    REMOTE_GATEWAY_WS_PORT=18114 \
+    REMOTE_GATEWAY_API_BASE_DOCKER=http://127.0.0.1:18113 \
+    REMOTE_GATEWAY_WS_URL_DOCKER=ws://127.0.0.1:18114 \
     GUACD_HOST=127.0.0.1 \
-    GUACD_PORT=4822 \
+    GUACD_PORT=18115 \
     FRONTEND_URL=http://localhost:18111 \
-    MAIN_BACKEND_URL=http://127.0.0.1:3001
+    MAIN_BACKEND_URL=http://127.0.0.1:18112
 
-EXPOSE 18111 3001 9090 8080
+EXPOSE 18111 18112 18113 18114
 
 ENTRYPOINT ["dumb-init", "--", "/usr/local/bin/nexus-terminal-entrypoint.sh"]
